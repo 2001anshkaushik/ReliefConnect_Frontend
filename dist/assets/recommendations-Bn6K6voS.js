@@ -1,0 +1,1 @@
+const e={default:{message:"We recommend the following emergency resources:",items:[{id:"food-kit",name:"Emergency Food Kit",qty:2,details:"Ready-to-eat meals for 3 days per person"},{id:"water-packs",name:"Bottled Water Packs",qty:4,details:"5L water packs"},{id:"first-aid",name:"First Aid Kit",qty:1,details:"Basic medical supplies"}]}};export{e as default};

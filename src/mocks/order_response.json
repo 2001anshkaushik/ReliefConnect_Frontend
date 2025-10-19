@@ -1,0 +1,5 @@
+{
+  "orderId": "offline-0001",
+  "status": "created",
+  "message": "This is a mock offline order response used when the network is unavailable."
+}
