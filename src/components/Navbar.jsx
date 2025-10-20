@@ -30,6 +30,7 @@ export default function Navbar() {
   const [markSafeOpen, setMarkSafeOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Placeholder auth state
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -43,15 +44,26 @@ export default function Navbar() {
 
   const handleMarkSafe = () => {
     // Simulate marking safe - in a real app this would send to backend
-    setSnackbarMessage("Your safety status has been updated. Thank you for letting us know you're safe!");
+    setSnackbarMessage(
+      "Your safety status has been updated. Thank you for letting us know you're safe!"
+    );
     setSnackbarOpen(true);
     setMarkSafeOpen(false);
   };
 
-
   return (
     <>
-      <AppBar position="sticky" color="primary" elevation={2}>
+      <AppBar
+        position="fixed"
+        color="primary"
+        elevation={2}
+        sx={{
+          boxShadow:
+            "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+          borderRadius: 0,
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+        }}
+      >
         <Toolbar>
           <Box
             sx={{ display: "flex", alignItems: "center", gap: 1, flexGrow: 1 }}
@@ -61,34 +73,53 @@ export default function Navbar() {
               variant="h6"
               component={RouterLink}
               to="/"
-              sx={{ 
-                color: "#fff", 
+              sx={{
+                color: "#fff",
                 textDecoration: "none",
                 fontWeight: 600,
-                fontSize: "1.25rem"
+                fontSize: "1.25rem",
               }}
             >
               ReliefConnect
             </Typography>
           </Box>
 
-          {/* Mark Safe Button - Always visible */}
+          {/* Authentication Button */}
           <Button
-            variant="contained"
-            startIcon={<CheckCircleIcon />}
-            onClick={() => setMarkSafeOpen(true)}
+            component={RouterLink}
+            to="/login"
+            variant="outlined"
             sx={{
-              backgroundColor: "#10b981",
               color: "#fff",
+              borderColor: "rgba(255, 255, 255, 0.5)",
               mr: 2,
               "&:hover": {
-                backgroundColor: "#059669",
+                borderColor: "#fff",
+                backgroundColor: "rgba(255, 255, 255, 0.1)",
               },
             }}
           >
-            I Am Safe
+            Sign In / Sign Up
           </Button>
 
+          {/* Mark Safe Button - Only visible when logged in */}
+          {isLoggedIn && (
+            <Button
+              variant="contained"
+              startIcon={<CheckCircleIcon />}
+              onClick={() => setMarkSafeOpen(true)}
+              sx={{
+                backgroundColor: "#f59e0b",
+                color: "#fff",
+                mr: 2,
+                "&:hover": {
+                  backgroundColor: "#d97706",
+                },
+              }}
+            >
+              I Am Safe
+            </Button>
+          )}
 
           {isMobile ? (
             <IconButton
@@ -123,18 +154,15 @@ export default function Navbar() {
 
       {/* Mobile Drawer */}
       <Drawer anchor="right" open={open} onClose={() => setOpen(false)}>
-        <Box
-          sx={{ width: 280, pt: 2 }}
-          role="presentation"
-        >
+        <Box sx={{ width: 280, pt: 2 }} role="presentation">
           <Typography variant="h6" sx={{ px: 2, pb: 2, fontWeight: 600 }}>
             Navigation
           </Typography>
           <List>
             {menuItems.map((m) => (
               <ListItem key={m.to} disablePadding>
-                <ListItemButton 
-                  component={RouterLink} 
+                <ListItemButton
+                  component={RouterLink}
                   to={m.to}
                   onClick={() => setOpen(false)}
                 >
@@ -145,6 +173,37 @@ export default function Navbar() {
                 </ListItemButton>
               </ListItem>
             ))}
+
+            {/* Authentication Link for Mobile */}
+            <ListItem disablePadding>
+              <ListItemButton
+                component={RouterLink}
+                to="/login"
+                onClick={() => setOpen(false)}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <span style={{ fontSize: "1.2rem" }}>🔐</span>
+                </ListItemIcon>
+                <ListItemText primary="Sign In / Sign Up" />
+              </ListItemButton>
+            </ListItem>
+
+            {/* Mark Safe Link for Mobile - Only visible when logged in */}
+            {isLoggedIn && (
+              <ListItem disablePadding>
+                <ListItemButton
+                  onClick={() => {
+                    setMarkSafeOpen(true);
+                    setOpen(false);
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 40 }}>
+                    <CheckCircleIcon sx={{ color: "#f59e0b" }} />
+                  </ListItemIcon>
+                  <ListItemText primary="I Am Safe" />
+                </ListItemButton>
+              </ListItem>
+            )}
           </List>
         </Box>
       </Drawer>
@@ -159,13 +218,13 @@ export default function Navbar() {
         </DialogTitle>
         <DialogContent>
           <Typography>
-            Are you safe and out of immediate danger? This will update your safety status 
-            and let your contacts know you're okay.
+            Are you safe and out of immediate danger? This will update your
+            safety status and let your contacts know you're okay.
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setMarkSafeOpen(false)}>Cancel</Button>
-          <Button 
+          <Button
             onClick={handleMarkSafe}
             variant="contained"
             sx={{ backgroundColor: "#10b981" }}
@@ -175,18 +234,17 @@ export default function Navbar() {
         </DialogActions>
       </Dialog>
 
-
       {/* Success Snackbar */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={4000}
         onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert 
-          onClose={() => setSnackbarOpen(false)} 
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
           severity="success"
-          sx={{ width: '100%' }}
+          sx={{ width: "100%" }}
         >
           {snackbarMessage}
         </Alert>

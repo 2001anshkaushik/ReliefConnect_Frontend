@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  Chip,
-} from "@mui/material";
+import { Card, CardContent, Typography, Box, Chip } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useReliefPackage } from "../context/ReliefPackageContext";
 import { NotificationContext } from "./Notifications";
@@ -17,81 +11,105 @@ import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import WaterIcon from "@mui/icons-material/Water";
 import InventoryIcon from "@mui/icons-material/Inventory";
 
-export default function ResourceCard({ item, onRequest, onViewMap, onFeedback }) {
+export default function ResourceCard({
+  item,
+  onRequest,
+  onViewMap,
+  onFeedback,
+}) {
   const navigate = useNavigate();
   const { addResource, isInPackage, getResourceQuantity } = useReliefPackage();
   const { show } = React.useContext(NotificationContext);
-  // Map item types to appropriate icons
-  const getItemIcon = (itemName, itemType) => {
-    const name = itemName?.toLowerCase() || "";
-    const type = itemType?.toLowerCase() || "";
-    
-    if (name.includes("food") || name.includes("meal") || name.includes("kitchen")) {
+
+  // Map category to appropriate icon
+  const getCategoryIcon = (category) => {
+    const categoryLower = category?.toLowerCase() || "";
+
+    if (categoryLower.includes("food") || categoryLower.includes("nutrition")) {
       return <RestaurantIcon sx={{ color: "#059669" }} />;
     }
-    if (name.includes("water") || name.includes("beverage") || name.includes("drink")) {
+    if (
+      categoryLower.includes("water") ||
+      categoryLower.includes("beverage") ||
+      categoryLower.includes("drink")
+    ) {
       return <WaterIcon sx={{ color: "#2563eb" }} />;
     }
-    if (name.includes("medical") || name.includes("first aid") || name.includes("health") || name.includes("medicine")) {
+    if (
+      categoryLower.includes("medical") ||
+      categoryLower.includes("health") ||
+      categoryLower.includes("medicine")
+    ) {
       return <LocalHospitalIcon sx={{ color: "#dc2626" }} />;
     }
-    if (name.includes("shelter") || name.includes("housing") || name.includes("home") || name.includes("accommodation")) {
+    if (
+      categoryLower.includes("shelter") ||
+      categoryLower.includes("housing") ||
+      categoryLower.includes("home") ||
+      categoryLower.includes("accommodation")
+    ) {
       return <HomeIcon sx={{ color: "#7c3aed" }} />;
     }
-    if (name.includes("power") || name.includes("battery") || name.includes("charging") || name.includes("electric")) {
+    if (
+      categoryLower.includes("power") ||
+      categoryLower.includes("battery") ||
+      categoryLower.includes("charging") ||
+      categoryLower.includes("electric")
+    ) {
       return <BatteryChargingFullIcon sx={{ color: "#f59e0b" }} />;
     }
-    if (name.includes("transport") || name.includes("vehicle") || name.includes("ride") || name.includes("evacuation")) {
+    if (
+      categoryLower.includes("transport") ||
+      categoryLower.includes("vehicle") ||
+      categoryLower.includes("ride") ||
+      categoryLower.includes("evacuation")
+    ) {
       return <DirectionsCarIcon sx={{ color: "#059669" }} />;
     }
     // Default icon for general items
     return <InventoryIcon sx={{ color: "#6b7280" }} />;
   };
 
-  // Get status color based on availability
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case "high":
-      case "available":
-        return "success";
-      case "medium":
-      case "limited":
-        return "warning";
-      case "low":
-      case "scarce":
-        return "error";
-      default:
-        return "default";
+  // Get availability status based on quantity
+  const getAvailabilityStatus = (quantity) => {
+    if (quantity > 20) {
+      return {
+        label: "Available",
+        color: "success",
+      };
+    } else {
+      return {
+        label: "Limited Supply",
+        color: "warning",
+      };
     }
   };
 
-  // Get status label
-  const getStatusLabel = (status) => {
-    switch (status?.toLowerCase()) {
-      case "high":
-      case "available":
-        return "Available";
-      case "medium":
-      case "limited":
-        return "Limited Supply";
-      case "low":
-      case "scarce":
-        return "Low Stock";
-      default:
-        return "Check Availability";
+  // Get availability color for custom styling
+  const getAvailabilityColor = (quantity) => {
+    if (quantity > 20) {
+      return {
+        backgroundColor: "#dcfce7",
+        color: "#166534",
+      };
+    } else {
+      return {
+        backgroundColor: "#fef3c7",
+        color: "#92400e",
+      };
     }
   };
 
   const handleViewMap = (item) => {
     // Open static map in new window
-    const mapWindow = window.open('', '_blank');
+    const mapWindow = window.open("", "_blank");
     mapWindow.document.write(`
       <html>
         <head><title>Map - ${item.name}</title></head>
         <body style="margin:0; padding:20px; font-family: Arial, sans-serif;">
           <h2>📍 ${item.name}</h2>
-          <p><strong>Location:</strong> ${item.location || 'Check local emergency services'}</p>
-          <p><strong>Contact:</strong> ${item.contact || 'Call 911 for immediate assistance'}</p>
+          <p><strong>Category:</strong> ${item.category}</p>
+          <p><strong>Quantity Available:</strong> ${item.quantity}</p>
           <div style="width:100%; height:400px; background:#f0f0f0; border:1px solid #ccc; display:flex; align-items:center; justify-content:center; margin:20px 0;">
             <p style="color:#666;">Interactive map coming soon</p>
           </div>
@@ -103,17 +121,18 @@ export default function ResourceCard({ item, onRequest, onViewMap, onFeedback })
 
   const handleAddToPackage = () => {
     addResource(item);
-    const quantity = getResourceQuantity(item.id);
+    const quantity = getResourceQuantity(item.id || item.name); // Use name as fallback ID
     show(`${item.name} added to relief package (${quantity} total)`, "success");
   };
 
-  const isItemInPackage = isInPackage(item.id);
-  const quantity = getResourceQuantity(item.id);
+  const isItemInPackage = isInPackage(item.id || item.name);
+  const quantity = getResourceQuantity(item.id || item.name);
+  const availability = getAvailabilityStatus(item.quantity);
 
   return (
-    <Card 
-      className="card-elevated" 
-      sx={{ 
+    <Card
+      className="card-elevated"
+      sx={{
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -125,71 +144,69 @@ export default function ResourceCard({ item, onRequest, onViewMap, onFeedback })
       }}
     >
       <CardContent sx={{ flexGrow: 1, pb: 1 }}>
-        {/* Header with icon and status */}
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+        {/* Header with icon and availability status */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 2,
+          }}
+        >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            {getItemIcon(item.name, item.type)}
+            {getCategoryIcon(item.category)}
             <Typography variant="h6" sx={{ fontWeight: 600, color: "#1e293b" }}>
               {item.name}
             </Typography>
           </Box>
           <Chip
-            label={getStatusLabel(item.status)}
+            label={availability.label}
             size="small"
-            color={getStatusColor(item.status)}
+            color={availability.color}
             sx={{
               fontWeight: 500,
               fontSize: "0.75rem",
+              ...getAvailabilityColor(item.quantity),
             }}
           />
         </Box>
 
-        {/* Quantity */}
-        {item.qty && (
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            <strong>Quantity:</strong> {item.qty}
-          </Typography>
-        )}
-
-        {/* Details */}
-        {item.details && (
-          <Typography variant="body2" sx={{ 
+        {/* Description */}
+        <Typography
+          variant="body2"
+          sx={{
             color: "#475569",
             lineHeight: 1.5,
-            mb: 1,
-          }}>
-            {item.details}
-          </Typography>
-        )}
+            mb: 2,
+          }}
+        >
+          {item.description}
+        </Typography>
 
-        {/* Additional info */}
-        {item.location && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
-            📍 {item.location}
-          </Typography>
-        )}
-
-        {item.contact && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-            📞 {item.contact}
-          </Typography>
-        )}
+        {/* Quantity Display */}
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          <strong>Quantity Available:</strong> {item.quantity}
+        </Typography>
       </CardContent>
 
       {/* Action Buttons */}
-      <Box sx={{ 
-        p: 2, 
-        pt: 0, 
-        display: "flex", 
-        gap: 1, 
-        flexWrap: "wrap",
-        borderTop: "1px solid #e2e8f0",
-      }}>
+      <Box
+        sx={{
+          p: 2,
+          pt: 0,
+          display: "flex",
+          gap: 1,
+          flexWrap: "wrap",
+          borderTop: "1px solid #e2e8f0",
+        }}
+      >
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", width: "100%" }}>
           <Box sx={{ flexGrow: 1, display: "flex", gap: 1 }}>
             <Box
               component="button"
-              onClick={() => navigate("/order", { state: { selectedItem: item } })}
+              onClick={() =>
+                navigate("/order", { state: { selectedItem: item } })
+              }
               sx={{
                 flex: 1,
                 backgroundColor: "#2563eb",
@@ -214,7 +231,7 @@ export default function ResourceCard({ item, onRequest, onViewMap, onFeedback })
             </Box>
             <Box
               component="button"
-              onClick={handleViewMap}
+              onClick={() => handleViewMap(item)}
               sx={{
                 backgroundColor: "transparent",
                 color: "#2563eb",
