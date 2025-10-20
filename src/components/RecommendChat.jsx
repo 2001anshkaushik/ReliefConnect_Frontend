@@ -21,8 +21,8 @@ import { recommend as recommendAPI } from "../services/api";
 import { AppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
 import ResourceCard from "./ResourceCard";
-import ReliefPackageBuilder from "./ReliefPackageBuilder";
 import { useReliefPackage } from "../context/ReliefPackageContext";
+import { NotificationContext } from "./Notifications";
 
 export default function RecommendChat() {
   const [messages, setMessages] = useState([]);
@@ -31,7 +31,8 @@ export default function RecommendChat() {
   const [isOffline, setIsOffline] = useState(false);
   const { setRecommendation, username, recommendation } =
     useContext(AppContext);
-  const { addResource } = useReliefPackage();
+  const { addResource, getTotalItems, setDrawerOpen } = useReliefPackage();
+  const { show } = useContext(NotificationContext);
   const liveRef = useRef(null);
   const inputRef = useRef(null);
   const navigate = useNavigate();
@@ -43,48 +44,86 @@ export default function RecommendChat() {
       id: "emergency-food-kit",
       name: "Emergency Food Kit",
       qty: "3-day supply",
-      details: "Non-perishable food items including canned goods, energy bars, and water bottles. Suitable for families of 2-4 people.",
+      price: 30,
+      details:
+        "Non-perishable food items including canned goods, energy bars, and water bottles. Suitable for families of 2-4 people.",
       status: "available",
       location: "Local Distribution Centers",
-      contact: "Call 211 for nearest location"
+      contact: "Call 211 for nearest location",
     },
     {
       id: "basic-medical-supplies",
       name: "Basic Medical Supplies",
       qty: "First Aid Kit",
-      details: "Essential first aid supplies including bandages, antiseptic, pain relievers, and basic medical equipment.",
+      price: 20,
+      details:
+        "Essential first aid supplies including bandages, antiseptic, pain relievers, and basic medical equipment.",
       status: "available",
       location: "Emergency Shelters & Medical Stations",
-      contact: "Available at all designated shelters"
+      contact: "Available at all designated shelters",
     },
     {
       id: "emergency-shelter",
       name: "Emergency Shelter",
       qty: "Temporary housing",
-      details: "Safe, temporary accommodation for displaced families. Includes basic amenities and security.",
+      price: 50,
+      details:
+        "Safe, temporary accommodation for displaced families. Includes basic amenities and security.",
       status: "limited",
       location: "Central High School, Community Center",
-      contact: "Call 911 for immediate assistance"
+      contact: "Call 911 for immediate assistance",
     },
     {
       id: "water-supplies",
       name: "Clean Water Supplies",
       qty: "Multiple locations",
-      details: "Access to clean drinking water and water purification supplies. Boil water advisory in effect for some areas.",
+      price: 15,
+      details:
+        "Access to clean drinking water and water purification supplies. Boil water advisory in effect for some areas.",
       status: "available",
       location: "Water distribution points throughout city",
-      contact: "Check local emergency broadcasts"
-    }
+      contact: "Check local emergency broadcasts",
+    },
   ];
 
   // Quick needs selection options
   const quickNeeds = [
-    { id: "food-water", label: "Food & Water", icon: "🍞", prompt: "I need food and water for my family" },
-    { id: "shelter", label: "Shelter", icon: "🏠", prompt: "I need temporary shelter or housing" },
-    { id: "first-aid", label: "First Aid", icon: "🏥", prompt: "I need medical assistance or first aid supplies" },
-    { id: "power", label: "Power/Charging", icon: "🔌", prompt: "I need power or charging for my devices" },
-    { id: "transportation", label: "Transportation", icon: "🚗", prompt: "I need transportation or evacuation assistance" },
-    { id: "communication", label: "Communication", icon: "📞", prompt: "I need to communicate with family or emergency services" },
+    {
+      id: "food-water",
+      label: "Food & Water",
+      icon: "🍞",
+      prompt: "I need food and water for my family",
+    },
+    {
+      id: "shelter",
+      label: "Shelter",
+      icon: "🏠",
+      prompt: "I need temporary shelter or housing",
+    },
+    {
+      id: "first-aid",
+      label: "First Aid",
+      icon: "🏥",
+      prompt: "I need medical assistance or first aid supplies",
+    },
+    {
+      id: "power",
+      label: "Power/Charging",
+      icon: "🔌",
+      prompt: "I need power or charging for my devices",
+    },
+    {
+      id: "transportation",
+      label: "Transportation",
+      icon: "🚗",
+      prompt: "I need transportation or evacuation assistance",
+    },
+    {
+      id: "communication",
+      label: "Communication",
+      icon: "📞",
+      prompt: "I need to communicate with family or emergency services",
+    },
   ];
 
   const pushMessage = (role, text) => {
@@ -107,7 +146,10 @@ export default function RecommendChat() {
       // Clear the current recommendation
       setRecommendation(null);
       // Add a helpful message to guide the user
-      pushMessage("agent", "I understand that recommendation wasn't quite right for your situation. Please tell me more about your specific needs so I can provide better assistance.");
+      pushMessage(
+        "agent",
+        "I understand that recommendation wasn't quite right for your situation. Please tell me more about your specific needs so I can provide better assistance."
+      );
       // Focus on the input field for the user to provide more details
       setTimeout(() => {
         if (inputRef.current) {
@@ -115,7 +157,8 @@ export default function RecommendChat() {
         }
       }, 100);
       if (liveRef.current) {
-        liveRef.current.textContent = "Recommendation cleared, please provide more details";
+        liveRef.current.textContent =
+          "Recommendation cleared, please provide more details";
       }
     }
   };
@@ -127,14 +170,18 @@ export default function RecommendChat() {
 
   const handleViewMap = (item) => {
     // Open static map in new window
-    const mapWindow = window.open('', '_blank');
+    const mapWindow = window.open("", "_blank");
     mapWindow.document.write(`
       <html>
         <head><title>Map - ${item.name}</title></head>
         <body style="margin:0; padding:20px; font-family: Arial, sans-serif;">
           <h2>📍 ${item.name}</h2>
-          <p><strong>Location:</strong> ${item.location || 'Check local emergency services'}</p>
-          <p><strong>Contact:</strong> ${item.contact || 'Call 911 for immediate assistance'}</p>
+          <p><strong>Location:</strong> ${
+            item.location || "Check local emergency services"
+          }</p>
+          <p><strong>Contact:</strong> ${
+            item.contact || "Call 911 for immediate assistance"
+          }</p>
           <div style="width:100%; height:400px; background:#f0f0f0; border:1px solid #ccc; display:flex; align-items:center; justify-content:center; margin:20px 0;">
             <p style="color:#666;">Interactive map coming soon</p>
           </div>
@@ -164,12 +211,12 @@ export default function RecommendChat() {
       const structuredRecommendation = {
         items: res.items || res.recommendations || [],
         message: res.message || "Here are some resources that might help you:",
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
-      
+
       pushMessage("agent", structuredRecommendation.message);
       setRecommendation(structuredRecommendation);
-      
+
       if (liveRef.current)
         liveRef.current.textContent = "Recommendation received";
     } catch (err) {
@@ -179,16 +226,17 @@ export default function RecommendChat() {
         "agent",
         "The AI Agent is currently unavailable. Here are some general recommendations for your area."
       );
-      
+
       const offlineRecommendation = {
         items: offlineResources,
-        message: "The AI Agent is currently unavailable. Here are some general recommendations for your area.",
+        message:
+          "The AI Agent is currently unavailable. Here are some general recommendations for your area.",
         timestamp: new Date().toISOString(),
-        offline: true
+        offline: true,
       };
-      
+
       setRecommendation(offlineRecommendation);
-      
+
       if (liveRef.current)
         liveRef.current.textContent = "Showing offline recommendations";
     } finally {
@@ -206,21 +254,22 @@ export default function RecommendChat() {
     if (!last) return;
     if (liveRef.current)
       liveRef.current.textContent = "Retrying to fetch recommendation";
-    
+
     setLoading(true);
     try {
       const res = await recommendAPI(last.text);
       const structuredRecommendation = {
         items: res.items || res.recommendations || [],
         message: res.message || "Here are some resources that might help you:",
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
-      
+
       pushMessage("agent", structuredRecommendation.message);
       setRecommendation(structuredRecommendation);
-      
+
       if (liveRef.current)
-        liveRef.current.textContent = "Connection restored—updated recommendation ready.";
+        liveRef.current.textContent =
+          "Connection restored—updated recommendation ready.";
     } catch (err) {
       // Fallback to offline recommendations
       setIsOffline(true);
@@ -228,18 +277,20 @@ export default function RecommendChat() {
         "agent",
         "The AI Agent is currently unavailable. Here are some general recommendations for your area."
       );
-      
+
       const offlineRecommendation = {
         items: offlineResources,
-        message: "The AI Agent is currently unavailable. Here are some general recommendations for your area.",
+        message:
+          "The AI Agent is currently unavailable. Here are some general recommendations for your area.",
         timestamp: new Date().toISOString(),
-        offline: true
+        offline: true,
       };
-      
+
       setRecommendation(offlineRecommendation);
-      
+
       if (liveRef.current)
-        liveRef.current.textContent = "Still offline — showing offline options.";
+        liveRef.current.textContent =
+          "Still offline — showing offline options.";
     } finally {
       setLoading(false);
     }
@@ -249,14 +300,16 @@ export default function RecommendChat() {
     // Manage quick replies; ensure focus and keyboard-friendly behavior
     setQuickRepliesVisible(false);
     if (type === "order") {
-      // navigate to order page and provide last recommendation from context
-      // prefer the in-memory recommendation object to prefill items
-      const payload = recommendation || null;
-      // announce transfer for screen reader users
-      if (liveRef.current)
-        liveRef.current.textContent =
-          "Opening order form with recommended items";
-      navigate("/order", { state: { recommendation: payload } });
+      const totalItems = getTotalItems();
+      if (totalItems > 0) {
+        // Open the cart sidebar instead of navigating
+        setDrawerOpen(true);
+        if (liveRef.current)
+          liveRef.current.textContent = "Opening relief package";
+      } else {
+        show("Your package is empty. Add items to proceed.", "warning");
+        if (liveRef.current) liveRef.current.textContent = "Package is empty";
+      }
     } else if (type === "refine") {
       // focus input and prefill a short prompt to help the user
       setInput((prev) => (prev ? prev : "Please refine: "));
@@ -279,12 +332,16 @@ export default function RecommendChat() {
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
           Describe your needs (include family size, location) and I'll suggest
-          resources. You can also use the quick options below to get started faster.
+          resources. You can also use the quick options below to get started
+          faster.
         </Typography>
-        
+
         {/* Quick Needs Selection */}
         <Box sx={{ mb: 2 }}>
-          <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 500, color: "text.primary" }}>
+          <Typography
+            variant="subtitle2"
+            sx={{ mb: 1.5, fontWeight: 500, color: "text.primary" }}
+          >
             Quick Needs Selection:
           </Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
@@ -293,7 +350,9 @@ export default function RecommendChat() {
                 key={need.id}
                 variant="outlined"
                 size="small"
-                startIcon={<span style={{ fontSize: "1rem" }}>{need.icon}</span>}
+                startIcon={
+                  <span style={{ fontSize: "1rem" }}>{need.icon}</span>
+                }
                 onClick={() => handleQuickNeed(need)}
                 sx={{
                   borderRadius: 2,
@@ -313,17 +372,56 @@ export default function RecommendChat() {
             ))}
           </Stack>
         </Box>
+
+        {/* Input Form */}
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: "flex", gap: 8, marginTop: 16 }}
+          aria-label="Needs submission form"
+        >
+          <TextField
+            inputRef={inputRef}
+            aria-label="Describe your needs"
+            placeholder="E.g. Flooded home, need shelter and food for family of 4"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            fullWidth
+            onKeyDown={(e) => {
+              // Enter submits, Shift+Enter allows newline
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit();
+              }
+            }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            disabled={loading}
+            aria-label="Get help now"
+          >
+            {loading ? <CircularProgress size={18} /> : "Get Help"}
+          </Button>
+        </form>
       </Paper>
 
       <Paper sx={{ p: 2, minHeight: 200 }} aria-live="polite">
         <List>
           {messages.length === 0 && (
             <ListItem>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  width: "100%",
+                }}
+              >
                 <Avatar sx={{ bgcolor: "#2563eb" }}>
                   <SmartToyIcon />
                 </Avatar>
-                <ListItemText primary="No conversation yet — type your needs below." />
+                <ListItemText primary="Welcome to ReliefConnect! Please describe your needs or use a quick selection above to get started." />
               </Box>
             </ListItem>
           )}
@@ -334,19 +432,23 @@ export default function RecommendChat() {
                 justifyContent: m.role === "user" ? "flex-end" : "flex-start",
               }}
             >
-              <Box sx={{ 
-                display: "flex", 
-                alignItems: "flex-start", 
-                gap: 1,
-                maxWidth: "85%",
-                flexDirection: m.role === "user" ? "row-reverse" : "row"
-              }}>
-                <Avatar sx={{ 
-                  bgcolor: m.role === "user" ? "#059669" : "#2563eb",
-                  width: 32,
-                  height: 32,
-                  fontSize: "0.875rem"
-                }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 1,
+                  maxWidth: "85%",
+                  flexDirection: m.role === "user" ? "row-reverse" : "row",
+                }}
+              >
+                <Avatar
+                  sx={{
+                    bgcolor: m.role === "user" ? "#059669" : "#2563eb",
+                    width: 32,
+                    height: 32,
+                    fontSize: "0.875rem",
+                  }}
+                >
                   {m.role === "user" ? <PersonIcon /> : <SmartToyIcon />}
                 </Avatar>
                 <Paper
@@ -356,16 +458,17 @@ export default function RecommendChat() {
                     borderRadius: 2,
                   }}
                 >
-                  <Typography variant="body2" sx={{ 
-                    fontWeight: 500, 
-                    mb: 0.5, 
-                    color: "#475569" 
-                  }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 500,
+                      mb: 0.5,
+                      color: "#475569",
+                    }}
+                  >
                     {m.role === "user" ? username || "You" : "AI Agent"}
                   </Typography>
-                  <Typography variant="body1">
-                    {m.text}
-                  </Typography>
+                  <Typography variant="body1">{m.text}</Typography>
                 </Paper>
               </Box>
             </ListItem>
@@ -376,7 +479,9 @@ export default function RecommendChat() {
                 <Avatar sx={{ bgcolor: "#2563eb" }}>
                   <SmartToyIcon />
                 </Avatar>
-                <Paper sx={{ p: 1.5, backgroundColor: "#f1f8f4", borderRadius: 2 }}>
+                <Paper
+                  sx={{ p: 1.5, backgroundColor: "#f1f8f4", borderRadius: 2 }}
+                >
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <CircularProgress size={16} />
                     <Typography variant="body2" color="text.secondary">
@@ -393,7 +498,14 @@ export default function RecommendChat() {
       {/* Display Resource Cards if available */}
       {recommendation && recommendation.items && (
         <Box sx={{ mt: 3 }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2,
+            }}
+          >
             <Typography variant="h6" sx={{ fontWeight: 600, color: "#1e293b" }}>
               Recommended Resources
             </Typography>
@@ -401,8 +513,11 @@ export default function RecommendChat() {
               variant="outlined"
               size="small"
               onClick={() => {
-                recommendation.items.forEach(item => addResource(item));
-                show(`Added ${recommendation.items.length} items to relief package`, "success");
+                recommendation.items.forEach((item) => addResource(item));
+                show(
+                  `Added ${recommendation.items.length} items to relief package`,
+                  "success"
+                );
               }}
               sx={{
                 borderColor: "#059669",
@@ -418,7 +533,8 @@ export default function RecommendChat() {
           </Box>
           {isOffline && (
             <Alert severity="info" sx={{ mb: 2 }}>
-              Showing offline recommendations. AI Agent is currently unavailable.
+              Showing offline recommendations. AI Agent is currently
+              unavailable.
             </Alert>
           )}
           <Grid container spacing={2}>
@@ -480,37 +596,6 @@ export default function RecommendChat() {
             />
           </Stack>
         )}
-
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: "flex", gap: 8, marginTop: 0 }}
-          aria-label="Needs submission form"
-        >
-          <TextField
-            inputRef={inputRef}
-            aria-label="Describe your needs"
-            placeholder="E.g. Flooded home, need shelter and food for family of 4"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            fullWidth
-            onKeyDown={(e) => {
-              // Enter submits, Shift+Enter allows newline
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit();
-              }
-            }}
-          />
-          <Button
-            variant="contained"
-            color="primary"
-            type="submit"
-            disabled={loading}
-            aria-label="Get help now"
-          >
-            {loading ? <CircularProgress size={18} /> : "Get Help"}
-          </Button>
-        </form>
       </Box>
 
       <div
@@ -524,9 +609,6 @@ export default function RecommendChat() {
         }}
         aria-live="polite"
       ></div>
-
-      {/* Relief Package Builder */}
-      <ReliefPackageBuilder />
     </Box>
   );
 }

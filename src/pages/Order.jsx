@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import OrderForm from "../components/OrderForm";
 
-const steps = ["Review Recommendation", "Enter Details", "Confirm Order"];
+const steps = ["Review Recommendation", "Enter Details", "Order Confirmation"];
 
 export default function OrderPage() {
   return (

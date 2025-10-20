@@ -5,13 +5,16 @@ const ReliefPackageContext = createContext();
 export const useReliefPackage = () => {
   const context = useContext(ReliefPackageContext);
   if (!context) {
-    throw new Error("useReliefPackage must be used within ReliefPackageProvider");
+    throw new Error(
+      "useReliefPackage must be used within ReliefPackageProvider"
+    );
   }
   return context;
 };
 
 export const ReliefPackageProvider = ({ children }) => {
   const [selectedResources, setSelectedResources] = useState([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Load package from sessionStorage on mount
   useEffect(() => {
@@ -38,9 +41,7 @@ export const ReliefPackageProvider = ({ children }) => {
       if (exists) {
         // Update quantity if already in package
         return prev.map((r) =>
-          r.id === resource.id
-            ? { ...r, quantity: (r.quantity || 1) + 1 }
-            : r
+          r.id === resource.id ? { ...r, quantity: (r.quantity || 1) + 1 } : r
         );
       }
       // Add new resource with quantity 1
@@ -49,9 +50,7 @@ export const ReliefPackageProvider = ({ children }) => {
   };
 
   const removeResource = (resourceId) => {
-    setSelectedResources((prev) =>
-      prev.filter((r) => r.id !== resourceId)
-    );
+    setSelectedResources((prev) => prev.filter((r) => r.id !== resourceId));
   };
 
   const updateQuantity = (resourceId, quantity) => {
@@ -60,9 +59,7 @@ export const ReliefPackageProvider = ({ children }) => {
       return;
     }
     setSelectedResources((prev) =>
-      prev.map((r) =>
-        r.id === resourceId ? { ...r, quantity } : r
-      )
+      prev.map((r) => (r.id === resourceId ? { ...r, quantity } : r))
     );
   };
 
@@ -84,6 +81,13 @@ export const ReliefPackageProvider = ({ children }) => {
     return selectedResources.reduce((sum, r) => sum + (r.quantity || 1), 0);
   };
 
+  const getSubtotal = () => {
+    return selectedResources.reduce(
+      (sum, r) => sum + (r.price || 0) * (r.quantity || 1),
+      0
+    );
+  };
+
   const loadKit = (kit) => {
     // kit should have structure: { resources: [...] }
     if (kit && kit.resources) {
@@ -100,7 +104,10 @@ export const ReliefPackageProvider = ({ children }) => {
     isInPackage,
     getResourceQuantity,
     getTotalItems,
+    getSubtotal,
     loadKit,
+    drawerOpen,
+    setDrawerOpen,
   };
 
   return (
@@ -109,4 +116,3 @@ export const ReliefPackageProvider = ({ children }) => {
     </ReliefPackageContext.Provider>
   );
 };
-

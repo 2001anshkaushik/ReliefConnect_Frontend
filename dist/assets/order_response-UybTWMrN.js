@@ -1,0 +1,1 @@
+const e="offline-0001",s="created",o="This is a mock offline order response used when the network is unavailable.",n={orderId:e,status:s,message:o};export{n as default,o as message,e as orderId,s as status};

@@ -10,7 +10,7 @@ import Recommend from "./pages/Recommend";
 import InformationHub from "./pages/InformationHub";
 import VolunteerPortal from "./pages/VolunteerPortal";
 import CommunityBoard from "./pages/CommunityBoard";
-import DisasterPreparedness from "./pages/DisasterPreparedness";
+import AidKits from "./pages/AidKits";
 import OrderPage from "./pages/Order";
 import TrackOrder from "./pages/TrackOrder";
 import ReportFraud from "./pages/ReportFraud";
@@ -19,6 +19,7 @@ import { AppProvider } from "./context/AppContext";
 import { ReliefPackageProvider } from "./context/ReliefPackageContext";
 import { CustomKitsProvider } from "./context/CustomKitsContext";
 import { NotificationProvider } from "./components/Notifications";
+import ReliefPackageBuilder from "./components/ReliefPackageBuilder";
 import Confirmation from "./pages/Confirmation";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
@@ -50,10 +51,7 @@ function App() {
                       <Route path="/information" element={<InformationHub />} />
                       <Route path="/volunteer" element={<VolunteerPortal />} />
                       <Route path="/community" element={<CommunityBoard />} />
-                      <Route
-                        path="/preparedness"
-                        element={<DisasterPreparedness />}
-                      />
+                      <Route path="/aid-kits" element={<AidKits />} />
                       <Route path="/track-order" element={<TrackOrder />} />
                       <Route path="/report-fraud" element={<ReportFraud />} />
                       <Route path="/signup" element={<SignUpPage />} />
@@ -84,6 +82,8 @@ function App() {
                       />
                     </Routes>
                   </Box>
+                  {/* Global Floating Cart */}
+                  <ReliefPackageBuilder />
                 </Box>
               </BrowserRouter>
             </NotificationProvider>

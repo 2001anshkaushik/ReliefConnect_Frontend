@@ -39,7 +39,7 @@ export default function Navbar() {
     { label: "Information Hub", to: "/information", icon: "📚" },
     { label: "Community Board", to: "/community", icon: "👥" },
     { label: "I Want to Help", to: "/volunteer", icon: "🤝" },
-    { label: "Preparedness", to: "/preparedness", icon: "🛡️" },
+    { label: "Aid Kits", to: "/aid-kits", icon: "🛡️" },
   ];
 
   const handleMarkSafe = () => {
